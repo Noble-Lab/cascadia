@@ -34,7 +34,7 @@ To run a pretrained Cascadia model on a new dataset, you just need to provide an
       --checkpoint cascadia.ckpt \
       --out demo_results
 
-For larger inference jobs, in order to reduce runtime we recommend using a GPU and setting the batch size to the largest value that still fits on GPU memory. 
+The demo dataset and model checkpoint is available [here](https://drive.google.com/drive/folders/1UTrZIrCdUqYqscbqga_KdX8kc8ZjMMfr?usp=sharing). For larger inference jobs, in order to reduce runtime we recommend using a GPU and setting the batch size to the largest value that still fits on GPU memory. 
 
 The output is a mztab text file containing one row for each Cascadia prediction. The relevent columns are: 
 -	predicted_sequence
