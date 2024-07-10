@@ -10,17 +10,8 @@ import os
 import sys, argparse
 from lightning.pytorch import loggers as pl_loggers
 from model import AugmentedSpec2Pep
+from augment import *
 from datetime import datetime
-
-def filter_intensity(max_num_peaks: int=150):
-    def filter(spectrum: MassSpectrum) -> MassSpectrum:
-        sorted_intensity_idxs = np.argsort(spectrum._inner._intensity)[-max_num_peaks:]
-        spectrum._inner._intensity = spectrum._inner._intensity[sorted_intensity_idxs]
-        spectrum._inner._mz = spectrum._inner._mz[sorted_intensity_idxs]
-        spectrum.rt = spectrum.rt[sorted_intensity_idxs]
-        spectrum.level = spectrum.level[sorted_intensity_idxs]
-        return spectrum
-    return filter
 
 def main():
   parser=argparse.ArgumentParser()
@@ -28,7 +19,9 @@ def main():
   parser.add_argument("--t", type= str, default= '')
   parser.add_argument("--v", type= str, default= '')
   parser.add_argument("--checkpoint", type= str, default= '', help="A model checkpoint for fine tuning")
+  parser.add_argument("--out", type= str, default= '', help="Output file for inference")
   parser.add_argument("--lr", type= float, help="Model learning rate")
+  parser.add_argument("--batch_size", type= int, default= 8, help="Number of spectra to include in a batch.")
   args=parser.parse_args()
 
   mode = args.mode
@@ -36,8 +29,10 @@ def main():
   val_file = args.v
   model_ckpt_path = args.checkpoint
   lr = args.lr
+  results_file = args.out
+  batch_size = args.batch_size
 
-  if mode == 'train':
+  if mode == 'train': 
 
     if not torch.cuda.is_available():
       print("No GPU Available!")
@@ -45,7 +40,7 @@ def main():
 
     print("Training on spectra from:", train_file)
     print("Validating on spectra from:", val_file)
-
+    
     ckpt_path = os.getcwd() + '/checkpoint_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
     os.mkdir(ckpt_path)
     train_index_filename = ckpt_path + "/train_gpu.hdf5"
@@ -57,19 +52,19 @@ def main():
       os.remove(val_index_filename)
 
     tokenizer = PeptideTokenizer.from_massivekb(reverse=False, replace_isoleucine_with_leucine=True)
-
+    
     if '.hdf5' in train_file:
-      train_dataset = AnnotatedSpectrumDataset(tokenizer, index_path=train_file, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm]) #scale_intensity(scaling="root"), scale_to_unit_norm
+      train_dataset = AnnotatedSpectrumDataset(tokenizer, index_path=train_file, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
       val_dataset = AnnotatedSpectrumDataset(tokenizer, index_path=val_file, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
     else:
-      train_dataset = AnnotatedSpectrumDataset(tokenizer, train_file, index_path=train_index_filename, preprocessing_fn=[scale_to_unit_norm]) #filter_intensity(max_num_peaks=500),
-      val_dataset = AnnotatedSpectrumDataset(tokenizer, val_file, index_path=val_index_filename, preprocessing_fn=[scale_to_unit_norm])
-
-    train_loader = train_dataset.loader(batch_size=32, num_workers=10, pin_memory=True, shuffle=True)
-    val_loader = val_dataset.loader(batch_size=32, num_workers=10, pin_memory=True)
+      train_dataset = AnnotatedSpectrumDataset(tokenizer, train_file, index_path=train_index_filename, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm]) 
+      val_dataset = AnnotatedSpectrumDataset(tokenizer, val_file, index_path=val_index_filename, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
+    
+    train_loader = train_dataset.loader(batch_size=batch_size, num_workers=10, pin_memory=True, shuffle=True)
+    val_loader = val_dataset.loader(batch_size=batch_size, num_workers=10, pin_memory=True)
 
     if model_ckpt_path == "":
-      print("Training model from scratch")
+      print("Training model from scratch") 
       model = AugmentedSpec2Pep(
           d_model = 512,
           n_layers = 9,
@@ -81,12 +76,11 @@ def main():
           max_charge=10,
           lr=lr
       )
-      interval = 50000
-
+      
     else:
-      print("Loading model from checkpoint:", model_ckpt_path)
+      print("Loading model from checkpoint:", model_ckpt_path) 
       model = AugmentedSpec2Pep.load_from_checkpoint(
-        model_ckpt_path,
+        model_ckpt_path, 
         d_model = 512,
         n_layers = 9,
         n_head = 8,
@@ -94,10 +88,8 @@ def main():
         dropout = 0,
         rt_width = 2,
         tokenizer=tokenizer,
-        max_charge=5,
         lr=lr
       )
-      interval = 5000
 
     tb_logger = pl_loggers.TensorBoardLogger(save_dir="logs/")
     ckpt_callback = pl.callbacks.ModelCheckpoint(
@@ -107,47 +99,48 @@ def main():
         mode='max',
         save_top_k=5
     )
-    trainer = pl.Trainer(max_epochs=200, logger=tb_logger, log_every_n_steps=2000, val_check_interval = interval, callbacks=[ckpt_callback], accelerator='gpu')
+    trainer = pl.Trainer(max_epochs=200, logger=tb_logger, log_every_n_steps=2000, val_check_interval = 1000, callbacks=[ckpt_callback], accelerator='gpu')
 
     #Train the model
-    trainer.fit(model,
-                train_loader,
-                val_loader)
+    trainer.fit(model, train_loader, val_loader)
+  
+  elif mode == 'sequence':
 
-  elif sys.argv[1] == 'sequence':
+    print("Augmenting spectra from:", train_file)
 
-    train_file = sys.argv[2]
-    chk_path = sys.argv[3]
-    results_file = sys.argv[4]
+    asf_file = augment_spectra(train_file)
 
-    print("Predicting spectra from:", train_file)
-
+    print("Running inference on augmented spectra from:", train_file)
+    
     ckpt_path = os.getcwd() + '/checkpoint_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
     os.mkdir(ckpt_path)
     train_index_filename = ckpt_path + "/train_gpu.hdf5"
 
     if os.path.exists(train_index_filename):
       os.remove(train_index_filename)
-
+    
     tokenizer = PeptideTokenizer.from_massivekb(reverse=False, replace_isoleucine_with_leucine=True)
 
     if os.path.exists(train_index_filename):
       os.remove(train_index_filename)
 
-    train_dataset = AnnotatedSpectrumDataset(tokenizer, train_file, index_path=train_index_filename, preprocessing_fn=[])
+    train_dataset = AnnotatedSpectrumDataset(tokenizer, asf_file, index_path=train_index_filename, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
     train_loader = train_dataset.loader(batch_size=32, num_workers=4, pin_memory=True)
 
+    if os.path.exists(asf_file):
+        os.remove(asf_file)
+
     model = AugmentedSpec2Pep.load_from_checkpoint(
-        chk_path,
-        d_model = 768,
-        n_layers = 10,
-        n_head = 12,
+        model_ckpt_path,
+        d_model = 512,
+        n_layers = 9,
+        n_head = 8,
         dim_feedforward = 1024,
         dropout = 0,
         rt_width = 2,
         tokenizer=tokenizer,
         max_charge=10,
-        lr = lr
+        lr=lr
     )
 
     if torch.cuda.is_available():
@@ -165,7 +158,7 @@ def main():
         aa_conf.append(aa_conf_c)
         pep_conf.append(pep_conf_c)
         true_seq.append(true_seq_c)
-
+        
     pred_seqs = np.concatenate(pred_seqs)
     pep_conf = np.concatenate(pep_conf)
     true_seq = np.concatenate(true_seq)

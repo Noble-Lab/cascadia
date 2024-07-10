@@ -96,8 +96,8 @@ class AugmentedSpec2Pep(pl.LightningModule):
             tokenizer,
             max_charge,
             lr,
-            self.frag_weight = 20,
-            self.lr_decay=1e-9
+            frag_weight = 20,
+            lr_decay=1e-9
         ):
 
         super().__init__()
@@ -130,9 +130,11 @@ class AugmentedSpec2Pep(pl.LightningModule):
         self.frag_layer = torch.nn.Linear(d_model,2)
 
         self.CELoss = torch.nn.CrossEntropyLoss(ignore_index=0)
-        self.fragCELoss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1.,self.frag_weight]))
+        self.fragCELoss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1.,frag_weight]))
         self.MSELoss = torch.nn.MSELoss()
         self.lr = lr
+
+        self.lr_decay=lr_decay
 
         self.tokenizer = tokenizer
 
