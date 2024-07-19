@@ -4,8 +4,6 @@ A transformer deep learning model for de novo sequencing of data-independent acq
 
 ## General information
 
-![image](https://github.com/Noble-Lab/cascadia/assets/60298590/60559890-8796-46e6-9ddd-38e55e6da94c)
-
 Full documentation and further functionality are still a work in progress. A short demo for running our trained version of Cascadia on your data is available below. Please check back soon for an updated tool! 
 
 In the meantime, you can read our preprint here: 
