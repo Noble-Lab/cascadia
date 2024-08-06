@@ -16,9 +16,13 @@ Thanks for you patience!
 ### Dependencies 
 
 Cascadia requires the following packages - we recommend using a package manager such as conda to manage your python enviornment:
-- FIXME
-- FIXME
-- ...
+- lightning >= 2.0
+- numpy < 2.0
+- torch >= 2.1
+- pyteomics
+- tqdm 
+- pandas
+- tensorboard
 
 Currently, you need to pull the Cascadia github repo and install the above dependencies yourself. Cascadia will be added to pip and conda soon, which will manage the installation of all dependencies automatically in a couple of minutes. 
 
