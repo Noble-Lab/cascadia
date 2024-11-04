@@ -1,0 +1,40 @@
+[project]
+name = "cascadia"
+version = "0.0.1"
+authors = [
+  { name="Justin Sanders", email="jsander1@uw.edu" },
+]
+description = "De novo sequencing for DIA mass spectrometry data"
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "lightning>=2.0,<2.1",
+    "pytorch-lightning>=1.9,<2.0",
+    "pyteomics>=4.6",
+    "torch>=2.0,<2.1",
+    "numpy<2.0",
+    "numba>=0.48.0",
+    "lxml>=4.9.1",
+    "h5py>=3.7.0",
+    "einops>=0.4.1",
+    "tqdm>=4.65.0",
+    "lark>=1.1.4",
+    "selfies>=2.1.1",
+    "sortedcontainers>=2.4.0",
+    "dill>=0.3.6",
+    "rdkit>=2023.03.1",
+    "pillow>=9.4.0",
+    "spectrum-utils>=0.4.1",
+]
+
+[project.urls]
+Homepage = "https://github.com/Noble-Lab/cascadia"
+
+[tool.setuptools.packages.find]
+include = ["cascadia"]
+exclude = ["data"]

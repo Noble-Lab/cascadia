@@ -262,9 +262,12 @@ class AugmentedSpec2Pep(pl.LightningModule):
         torch.set_grad_enabled(True)
 
         spectra, precursors, sequences, frag_labels = batch
+        device = spectra.get_device()
+        if device < 0:
+            device = 'cpu'
 
-        cur_sequences = torch.empty((len(sequences),0), dtype=torch.int32, device=torch.device('cuda'))
-        aa_conf = torch.empty((len(sequences),0), dtype=torch.int32, device=torch.device('cuda'))
+        cur_sequences = torch.empty((len(sequences),0), dtype=torch.int32, device=device)
+        aa_conf = torch.empty((len(sequences),0), dtype=torch.int32, device=device)
         for i in range(len(sequences[0]) + 1):
             preds, _, _ = self._forward_step(spectra, precursors, cur_sequences)
             next_aa_scores = torch.softmax(preds[:,-1,:], 1)

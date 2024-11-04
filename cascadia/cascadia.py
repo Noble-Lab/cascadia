@@ -1,13 +1,11 @@
 from depthcharge.depthcharge.data.spectrum_datasets import AnnotatedSpectrumDataset
 from depthcharge.depthcharge.data.preprocessing import scale_to_unit_norm, scale_intensity
 from depthcharge.depthcharge.tokenizers import PeptideTokenizer
-from depthcharge.depthcharge.primitives import MassSpectrum
-from typing import Any, Dict, Iterable, List, Optional, Tuple, Union
 import torch
 import numpy as np
 import pytorch_lightning as pl
 import os
-import sys, argparse
+import argparse
 from lightning.pytorch import loggers as pl_loggers
 from model import AugmentedSpec2Pep
 from augment import *
@@ -127,8 +125,8 @@ def main():
     train_dataset = AnnotatedSpectrumDataset(tokenizer, asf_file, index_path=train_index_filename, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
     train_loader = train_dataset.loader(batch_size=32, num_workers=4, pin_memory=True)
 
-    if os.path.exists(asf_file):
-        os.remove(asf_file)
+    # if os.path.exists(asf_file):
+    #     os.remove(asf_file)
 
     model = AugmentedSpec2Pep.load_from_checkpoint(
         model_ckpt_path,
@@ -147,6 +145,7 @@ def main():
       device = 'gpu'
     else:
       device = 'cpu'
+    print(device)
 
     trainer = pl.Trainer(max_epochs=50, log_every_n_steps=1, accelerator=device)
     preds = trainer.predict(model, dataloaders=train_loader)
