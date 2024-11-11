@@ -13,14 +13,13 @@ version = '0.0.1'
 
 # -- General configuration
 
-extensions = ['myst_parser']
-
 extensions = [
     'sphinx.ext.duration',
     'sphinx.ext.doctest',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
+    'myst_parser',
 ]
 
 # The format for each file suffix:
