@@ -1,15 +1,18 @@
+from importlib.metadata import version
+
 # Configuration file for the Sphinx documentation builder.
 
 # -- Project information
 
-project = 'Lumache'
-copyright = '2021, Graziella'
-author = 'Graziella'
-
-release = '0.1'
-version = '0.1.0'
+project = 'Cascadia'
+copyright = '2024, Justin Sanders'
+author = 'Justin Sanders'
+release = version("cascadia")
+version = ".".join(release.split(".")[:2])
 
 # -- General configuration
+
+extensions = ['myst_parser']
 
 extensions = [
     'sphinx.ext.duration',
@@ -18,6 +21,12 @@ extensions = [
     'sphinx.ext.autosummary',
     'sphinx.ext.intersphinx',
 ]
+
+# The format for each file suffix:
+source_suffix = {
+    ".rst": "restructuredtext",
+    ".md": "markdown",
+}
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3/', None),
