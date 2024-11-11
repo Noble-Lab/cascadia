@@ -50,28 +50,10 @@ source_suffix = {
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_book_theme"
-html_title = "Casanovo"
+html_title = "Cascadia"
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
-html_theme_options = {"repository_url": "https//github.com/Noble-Lab/casanovo"}
 
-# -- MyST configuration ------------------------------------------------------
-myst_enable_extensions = [
-    "amsmath",
-    "colon_fence",
-    "deflist",
-    "dollarmath",
-    "fieldlist",
-    "html_admonition",
-    "html_image",
-    "replacements",
-    "smartquotes",
-    "strikethrough",
-    "substitution",
-    "tasklist",
-]
-myst_heading_anchors = 3
