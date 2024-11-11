@@ -7,7 +7,7 @@ Cascadia
 
    This project is under active development.
 
-![image](images/cascadia_graphical_abstract.pdf)
+![image](images/cascadia-graphical-abstract.pdf)
 
 If you use Casanovo in your work, please cite the following publication:
 

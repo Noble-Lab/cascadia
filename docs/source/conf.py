@@ -7,8 +7,9 @@ from importlib.metadata import version
 project = 'Cascadia'
 copyright = '2024, Justin Sanders'
 author = 'Justin Sanders'
-release = version("cascadia")
-version = ".".join(release.split(".")[:2])
+# release = version("cascadia")
+# version = ".".join(release.split(".")[:2])
+version = '0.0.1'
 
 # -- General configuration
 
