@@ -381,7 +381,7 @@ class AsfParser(BaseParser):
         self.rt_arrays = []
         self.level_arrays = []
         self.fragment_arrays = []
-
+        self.global_rts = []
         self._counter = -1
     
     def parse_spectrum(self, spectrum: dict) -> MassSpectrum:
@@ -410,6 +410,7 @@ class AsfParser(BaseParser):
                     precursor_charge = 0
                     scan_id = 0
                     label = None
+                    rt = None
                 elif line[0][:7] == 'PEPMASS':
                     precursor_mz = float(line[0].split('=')[1])
                 elif line[0][:6] == 'CHARGE':
@@ -418,6 +419,8 @@ class AsfParser(BaseParser):
                     scan_id = float(line[0].split('=')[1])
                 elif line[0][:3] == 'SEQ':
                     label = line[0].split('=')[1]
+                elif line[0][:3] == 'RT=':
+                    rt = float(line[0].split('=')[1])
                 elif len(line) == 4 and '.' in line[0] and '.' in line[1]:
                     mzs.append(float(line[0]))
                     intensities.append(float(line[1]))
@@ -427,20 +430,19 @@ class AsfParser(BaseParser):
 
                     seq = ''.join(filter(str.isalpha, label))
                     fragments = []
-                    for i in range(1, len(seq)):
-                        break
+                    fragment_labels = []
+                    #for i in range(1, len(seq)):
                         # fragments.append(mass.fast_mass(seq[:i], ion_type='b', charge=1) + 57.021 * seq.count('C'))
                         # fragments.append(mass.fast_mass(seq[i:], ion_type='y', charge=1) + 57.021 * seq.count('C'))
                         # fragments.append(mass.fast_mass(seq[:i], ion_type='b', charge=2) + 57.021/2 * seq.count('C'))
                         # fragments.append(mass.fast_mass(seq[i:], ion_type='y', charge=2) + 57.021/2 * seq.count('C'))
 
-                    fragment_labels = []
                     for peak in mzs:
                         peak_label = 0
-                        for frag in fragments:
-                            if np.abs(peak - frag) < (20 * frag / 1e6):
-                                peak_label = 1
-                                break
+                    #     for frag in fragments:
+                    #         if np.abs(peak - frag) < (20 * frag / 1e6):
+                    #             peak_label = 1
+                    #             break
                         fragment_labels.append(peak_label)
 
                     spectrum = MassSpectrum(
@@ -460,6 +462,7 @@ class AsfParser(BaseParser):
                         for processor in self.preprocessing_fn:
                             spectrum = processor(spectrum)
 
+                    self.global_rts.append(rt)
                     self.mz_arrays.append(spectrum.mz)
                     self.intensity_arrays.append(spectrum.intensity)
                     self.rt_arrays.append(spectrum.rt)
@@ -483,6 +486,7 @@ class AsfParser(BaseParser):
         )
 
         self.scan_id = np.array(self.scan_id)
+        self.global_rts = np.array(self.global_rts)
 
         # Build the index
         sizes = np.array([0] + [s.shape[0] for s in self.mz_arrays])

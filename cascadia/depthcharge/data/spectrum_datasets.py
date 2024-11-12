@@ -224,6 +224,7 @@ class SpectrumDataset(Dataset):
             ("precursor_charge", np.uint8),
             ("offset", np.uint64),
             ("scan_id", np.uint32),
+            ("global_rt", np.float32),
         ]
 
         metadata = np.empty(parser.n_spectra, dtype=meta_types)
@@ -231,6 +232,7 @@ class SpectrumDataset(Dataset):
         metadata["precursor_charge"] = parser.precursor_charge
         metadata["offset"] = parser.offset
         metadata["scan_id"] = parser.scan_id
+        metadata["global_rt"] = parser.global_rts
         return metadata
 
     def add_file(self, ms_data_file: PathLike) -> None:
@@ -362,6 +364,7 @@ class SpectrumDataset(Dataset):
             fragment_label=np.array(spectrum["fragment_array"]),
             precursor_mz=precursor["precursor_mz"],
             precursor_charge=precursor["precursor_charge"],
+            global_rt = np.array(precursor["global_rt"])
         )
 
     def get_spectrum_id(self, idx: int) -> tuple[str, str]:
@@ -681,9 +684,9 @@ class AnnotatedSpectrumDataset(SpectrumDataset):
         annotations : np.ndarray[str]
             The spectrum annotations.
         """
-        spectra, precursors, annotations, fragment_labels = _collate_fn(batch)
+        spectra, precursors, annotations, fragment_labels, global_rt = _collate_fn(batch)
         tokens = self.tokenizer.tokenize(annotations, add_stop=True)
-        return spectra, precursors, tokens, fragment_labels
+        return spectra, precursors, tokens, fragment_labels, global_rt
 
 
 def _collate_fn(
@@ -714,12 +717,14 @@ def _collate_fn(
     charges = []
     annotations = []
     fragment_label = []
+    global_rt = []
     for spec in batch:
         spectra.append(spec.to_tensor())
         masses.append(spec.precursor_mass) #spec.precursor_mass + np.random.rand() * spec.precursor_mass * 50 / 1000000)
         charges.append(spec.precursor_charge)
         annotations.append(spec.label)
         fragment_label.append(torch.tensor(spec.fragment_label))
+        global_rt.append(spec.global_rt)
     precursor_masses = (np.array(masses) - 1.007276) * np.array(charges)
     precursors = torch.vstack([torch.tensor(precursor_masses), torch.tensor(charges)])
     spectra = torch.nn.utils.rnn.pad_sequence(
@@ -732,7 +737,7 @@ def _collate_fn(
     )
 
     model_type = torch.float32
-    return spectra.type(model_type), precursors.T.type(model_type), annotations, fragment_label.flatten()
+    return spectra.type(model_type), precursors.T.type(model_type), annotations, fragment_label.flatten(), global_rt
 
 
 def _hash_obj(obj: Any) -> str:  # noqa: ANN401

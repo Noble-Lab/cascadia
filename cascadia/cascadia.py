@@ -1,14 +1,15 @@
-from depthcharge.depthcharge.data.spectrum_datasets import AnnotatedSpectrumDataset
-from depthcharge.depthcharge.data.preprocessing import scale_to_unit_norm, scale_intensity
-from depthcharge.depthcharge.tokenizers import PeptideTokenizer
+from .depthcharge.data.spectrum_datasets import AnnotatedSpectrumDataset
+from .depthcharge.data.preprocessing import scale_to_unit_norm, scale_intensity
+from .depthcharge.tokenizers import PeptideTokenizer
 import torch
 import numpy as np
 import pytorch_lightning as pl
 import os
 import argparse
 from lightning.pytorch import loggers as pl_loggers
-from model import AugmentedSpec2Pep
-from augment import *
+from .utils import *
+from .model import AugmentedSpec2Pep
+from .augment import *
 from datetime import datetime
 
 def main():
@@ -98,30 +99,21 @@ def main():
         save_top_k=5
     )
     trainer = pl.Trainer(max_epochs=200, logger=tb_logger, log_every_n_steps=2000, val_check_interval = 1000, callbacks=[ckpt_callback], accelerator='gpu')
-
-    #Train the model
     trainer.fit(model, train_loader, val_loader)
   
   elif mode == 'sequence':
 
-    print("Augmenting spectra from:", train_file)
-
-    asf_file = augment_spectra(train_file)
-
-    print("Running inference on augmented spectra from:", train_file)
+    score_threshold = 0.8
+    augmentation_width = 2
     
-    ckpt_path = os.getcwd() + '/checkpoint_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
-    os.mkdir(ckpt_path)
-    train_index_filename = ckpt_path + "/train_gpu.hdf5"
+    temp_path = os.getcwd() + '/cascadia_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
+    os.mkdir(temp_path)
+    train_index_filename = temp_path + "/train_gpu.hdf5"
 
-    if os.path.exists(train_index_filename):
-      os.remove(train_index_filename)
+    print("Augmenting spectra from:", train_file)
+    asf_file, isolation_window_size, cycle_time = augment_spectra(train_file, temp_path)
     
     tokenizer = PeptideTokenizer.from_massivekb(reverse=False, replace_isoleucine_with_leucine=True)
-
-    if os.path.exists(train_index_filename):
-      os.remove(train_index_filename)
-
     train_dataset = AnnotatedSpectrumDataset(tokenizer, asf_file, index_path=train_index_filename, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
     train_loader = train_dataset.loader(batch_size=32, num_workers=4, pin_memory=True)
 
@@ -141,31 +133,19 @@ def main():
         lr=lr
     )
 
+    print("Running inference on augmented spectra from:", train_file)
     if torch.cuda.is_available():
       device = 'gpu'
+      print('GPU found')
     else:
       device = 'cpu'
-    print(device)
+      print(f'No GPU found - running inference on cpu')
 
     trainer = pl.Trainer(max_epochs=50, log_every_n_steps=1, accelerator=device)
     preds = trainer.predict(model, dataloaders=train_loader)
 
-    pred_seqs, aa_conf, pep_conf, true_seq = [], [], [], []
-
-    for pred_seqs_c, true_seq_c, pep_conf_c, aa_conf_c in preds:
-        pred_seqs.append(pred_seqs_c)
-        aa_conf.append(aa_conf_c)
-        pep_conf.append(pep_conf_c)
-        true_seq.append(true_seq_c)
-        
-    pred_seqs = np.concatenate(pred_seqs)
-    pep_conf = np.concatenate(pep_conf)
-    true_seq = np.concatenate(true_seq)
-
-    print("Writing results to:", results_file + '.tsv')
-    with open(results_file + '.tsv', 'w') as out:
-        for pred, true, conf in zip(pred_seqs, true_seq, pep_conf):
-            out.write("\t".join([pred.split('$')[0], true, str(conf)]) + '\n')
+    print("Writing results to:", results_file + '.ssl')
+    write_results(preds, results_file, train_file, isolation_window_size, score_threshold, augmentation_width*cycle_time)
 
 if __name__ == '__main__':
     main()

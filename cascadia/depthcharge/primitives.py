@@ -367,6 +367,7 @@ class MassSpectrum(MsmsSpectrum):
         precursor_mz: float | None = None,
         precursor_charge: int | None = None,
         label: str | None = None,
+        global_rt: float | None = None,
     ) -> None:
         """Initialize a MassSpectrum."""
         self.filename = filename
@@ -395,6 +396,7 @@ class MassSpectrum(MsmsSpectrum):
 
         self.rt = rt 
         self.level = level
+        self.global_rt = global_rt
         self.fragment_label = fragment_label
 
 

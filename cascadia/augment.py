@@ -5,27 +5,36 @@ import os
 def get_centers(mzml_file):
     f_to_mzrt_to_pep = {}
     max_mz = 0
-    count = 0
+    num_spectra = 0
     part = 0
+    last_rt = 0
+    cycle_time = None
     with mzml.read(mzml_file) as reader:
         for spec in reader:
+            if spec['ms level'] == 1:
+                cur_rt = 60 * spec['scanList']['scan'][0]['scan start time']
+                cycle_time = cur_rt - last_rt
+                last_rt = cur_rt
             if spec['ms level'] == 2:
                 window = spec['precursorList']['precursor'][0]['isolationWindow']
                 window_center = window['isolation window target m/z']
                 lower_offset = window['isolation window lower offset']
                 upper_offset = window['isolation window upper offset']
+                window_size = upper_offset + lower_offset
                 cur_rt = 60 * spec['scanList']['scan'][0]['scan start time']
-                if count % 50000 == 0:
+                if num_spectra % 50000 == 0:
                     part += 1
                     f_to_mzrt_to_pep[part] = {}
-                count += 1
+                # if count > 1000:
+                #     break
+                num_spectra += 1
                 key = (int(window_center/10), int(cur_rt/10))
                 max_mz = max(max_mz,int(window_center/10))
                 if key in f_to_mzrt_to_pep[part]:
                     f_to_mzrt_to_pep[part][key].append((window_center, cur_rt, 1))
                 else:
                     f_to_mzrt_to_pep[part][key] = [(window_center, cur_rt, 1)]
-    return f_to_mzrt_to_pep, max_mz
+    return f_to_mzrt_to_pep, max_mz, window_size, cycle_time
 
 def extract_spectra(mzml_file, f_to_mzrt_to_pep, part, top_n, time_width, max_mz):
     prec_to_spec = {}
@@ -48,6 +57,11 @@ def extract_spectra(mzml_file, f_to_mzrt_to_pep, part, top_n, time_width, max_mz
                                     sorted_mz_idxs = np.argsort(mzs)
                                     intensities = intensities[sorted_mz_idxs]
                                     mzs = mzs[sorted_mz_idxs]
+
+                                    intensities = intensities ** .5
+                                    intensities = intensities ** .5
+                                    if len(intensities) > 0:
+                                        intensities = intensities/np.max(intensities)
 
                                     if (mz, rt, charge) not in prec_to_spec:
                                         prec_to_spec[(mz, rt, charge)] = {}
@@ -79,6 +93,10 @@ def extract_spectra(mzml_file, f_to_mzrt_to_pep, part, top_n, time_width, max_mz
                                     sorted_mz_idxs = np.argsort(mzs)
                                     intensities = intensities[sorted_mz_idxs]
                                     mzs = mzs[sorted_mz_idxs]
+
+                                    intensities = intensities ** .5
+                                    if len(intensities) > 0:
+                                        intensities = intensities/np.max(intensities)
                       
                                     if (mz, rt, charge) not in prec_to_spec:
                                         prec_to_spec[(mz, rt, charge)] = {}
@@ -93,6 +111,7 @@ def extract_spectra(mzml_file, f_to_mzrt_to_pep, part, top_n, time_width, max_mz
 def write_asf(outfile, prec_to_spec, scan_width, max_pep_length, max_charge):
     out = open(outfile, 'a')
     skipped = 0
+    count = 0
     for key, value in prec_to_spec.items():
         if 'ms1_scans' not in value:
             skipped += 1
@@ -114,7 +133,6 @@ def write_asf(outfile, prec_to_spec, scan_width, max_pep_length, max_charge):
         ms1_rts = ms1_rts[sorted_ms1_rt_idxs]
         ms1_scans = ms1_scans[sorted_ms1_rt_idxs]
         
-        count = 0
         for charge in range(1,max_charge+1):
             count += 1
 
@@ -138,13 +156,11 @@ def write_asf(outfile, prec_to_spec, scan_width, max_pep_length, max_charge):
             out.write("END IONS\n")   
     out.close()
 
-def augment_spectra(mzml_file, top_n = 150, scan_width = 1, time_width = 3, max_pep_length = 20, max_charge = 3):
-    outfile = "temp.asf"
-    if os.path.exists(outfile):
-        os.remove(outfile)
-    f_to_mzrt_to_pep, max_mz = get_centers(mzml_file)
+def augment_spectra(mzml_file, temp_path, top_n = 150, scan_width = 1, max_pep_length = 30, max_charge = 3):
+    outfile = temp_path + "/temp.asf"
+    f_to_mzrt_to_pep, max_mz, window_size, cycle_time = get_centers(mzml_file)
     for part in f_to_mzrt_to_pep.keys():
-        prec_to_spec = extract_spectra(mzml_file, f_to_mzrt_to_pep, part, top_n, time_width, max_mz)
+        prec_to_spec = extract_spectra(mzml_file, f_to_mzrt_to_pep, part, top_n, (scan_width + 1) * cycle_time, max_mz)
         print(f'Generating {len(prec_to_spec) * max_charge} augmented spectra')
         write_asf(outfile, prec_to_spec, scan_width, max_pep_length, max_charge)
-    return outfile
+    return outfile, window_size, cycle_time
