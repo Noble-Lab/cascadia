@@ -2,3 +2,4 @@ sphinx==7.1.2
 sphinx-rtd-theme
 myst-parser>=0.18.1
 sphinx-argparse==0.5.1
+cascadia
