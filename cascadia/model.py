@@ -1,5 +1,5 @@
-from depthcharge.depthcharge.encoders import PeakEncoder, FloatEncoder
-from depthcharge.depthcharge.transformers import SpectrumTransformerEncoder, PeptideTransformerDecoder
+from .depthcharge.encoders import PeakEncoder, FloatEncoder
+from .depthcharge.transformers import SpectrumTransformerEncoder, PeptideTransformerDecoder
 from typing import Any, Dict, Iterable, List, Tuple
 import torch
 import numpy as np
@@ -154,7 +154,7 @@ class AugmentedSpec2Pep(pl.LightningModule):
 
     def training_step(self, batch):
 
-        spectra, precursors, sequences, frag_labels = batch
+        spectra, precursors, sequences, frag_labels, _ = batch
         preds, pred_prec, pred_frags= self._forward_step(spectra, precursors, sequences)
         preds_seqs = torch.argmax(preds, dim=2)[:,:-1]
         preds = preds[:,:-1,:].reshape(-1, len(self.tokenizer) + 1)
@@ -203,7 +203,7 @@ class AugmentedSpec2Pep(pl.LightningModule):
     def validation_step(self, batch, b_idx, d_idx):
         torch.set_grad_enabled(True)
 
-        spectra, precursors, sequences, frag_labels = batch
+        spectra, precursors, sequences, frag_labels, _ = batch
         preds, pred_prec, pred_frags = self._forward_step(spectra, precursors, sequences)
         preds_seqs = torch.argmax(preds, dim=2)[:,:-1]
         preds = preds[:,:-1,:].reshape(-1, len(self.tokenizer) + 1)
@@ -261,7 +261,7 @@ class AugmentedSpec2Pep(pl.LightningModule):
     def predict_step(self, batch, *args):
         torch.set_grad_enabled(True)
 
-        spectra, precursors, sequences, frag_labels = batch
+        spectra, precursors, sequences, frag_labels, rts = batch
         device = spectra.get_device()
         if device < 0:
             device = 'cpu'
@@ -286,9 +286,9 @@ class AugmentedSpec2Pep(pl.LightningModule):
         for pred_pep, pep_aa_conf in zip(pred_seqs, aa_conf):
             trimmed_pep = pred_pep.split('$')[0]
             trimmed_pred_seqs.append(trimmed_pep)
-            pep_conf.append(torch.mean(pep_aa_conf[:len(trimmed_pep) + 1]))
+            pep_conf.append(torch.sum(torch.log(pep_aa_conf[:len(trimmed_pep) + 1])))
 
-        return trimmed_pred_seqs, true_seqs, pep_conf, aa_conf
+        return trimmed_pred_seqs, true_seqs, pep_conf, aa_conf, rts, precursors
 
     def configure_optimizers(self):
         """

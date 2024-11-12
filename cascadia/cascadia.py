@@ -12,6 +12,67 @@ from .model import AugmentedSpec2Pep
 from .augment import *
 from datetime import datetime
 
+def sequence():
+  parser=argparse.ArgumentParser()
+  parser.add_argument("spectrum_file")
+  parser.add_argument("--model", type= str, default= '', help="A model checkpoint for fine tuning")
+  parser.add_argument("-o", "--outfile", type= str, default= 'cascadia_results', help="Output file for inference")
+  parser.add_argument("--batch_size", type= int, default= 32, help="Number of spectra to include in a batch.")
+  args=parser.parse_args()
+
+  spectrum_file = args.spectrum_file
+  model_ckpt_path = args.model
+  lr = args.lr
+  results_file = args.outfile
+  batch_size = args.batch_size
+
+
+  score_threshold = 0.8
+  augmentation_width = 2
+  
+  temp_path = os.getcwd() + '/cascadia_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
+  os.mkdir(temp_path)
+  train_index_filename = temp_path + "/train_gpu.hdf5"
+
+  print("Augmenting spectra from:", spectrum_file)
+  asf_file, isolation_window_size, cycle_time = augment_spectra(spectrum_file, temp_path)
+  
+  tokenizer = PeptideTokenizer.from_massivekb(reverse=False, replace_isoleucine_with_leucine=True)
+  train_dataset = AnnotatedSpectrumDataset(tokenizer, asf_file, index_path=train_index_filename, preprocessing_fn=[scale_intensity(scaling="root"), scale_to_unit_norm])
+  train_loader = train_dataset.loader(batch_size=batch_size, num_workers=4, pin_memory=True)
+
+  # if os.path.exists(asf_file):
+  #     os.remove(asf_file)
+
+  model = AugmentedSpec2Pep.load_from_checkpoint(
+      model_ckpt_path,
+      d_model = 512,
+      n_layers = 9,
+      n_head = 8,
+      dim_feedforward = 1024,
+      dropout = 0,
+      rt_width = 2,
+      tokenizer=tokenizer,
+      max_charge=10,
+      lr=lr
+  )
+
+  print("Running inference on augmented spectra from:", spectrum_file)
+  if torch.cuda.is_available():
+    device = 'gpu'
+    print('GPU found')
+  else:
+    device = 'cpu'
+    print(f'No GPU found - running inference on cpu')
+
+  trainer = pl.Trainer(max_epochs=50, log_every_n_steps=1, accelerator=device)
+  preds = trainer.predict(model, dataloaders=train_loader)
+
+  print("Writing results to:", results_file + '.ssl')
+  write_results(preds, results_file, spectrum_file, isolation_window_size, score_threshold, augmentation_width*cycle_time)
+  return parser
+
+  
 def main():
   parser=argparse.ArgumentParser()
   parser.add_argument("--mode", type= str)

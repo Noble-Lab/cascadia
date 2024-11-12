@@ -32,9 +32,11 @@ dependencies = [
     "spectrum-utils>=0.4.1",
 ]
 
+[project.scripts]
+cascadia = "cascadia.cascadia:main"
+
 [project.urls]
 Homepage = "https://github.com/Noble-Lab/cascadia"
 
 [tool.setuptools.packages.find]
-include = ["cascadia"]
 exclude = ["data"]
