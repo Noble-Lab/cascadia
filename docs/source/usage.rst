@@ -2,6 +2,6 @@ Usage
 ====
 
 .. argparse::
-   :module: cascadia.cascadia
+   :file: cascadia.py
    :func: sequence
    :prog: sequence
