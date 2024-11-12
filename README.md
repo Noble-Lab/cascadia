@@ -3,7 +3,7 @@
 
 **A transformer model for de novo sequencing of data-independent acquisition mass spectrometry data**
 
-![image](cascadia-graphical-abstract.png)
+![image](docs/source/cascadia-graphical-abstract.png)
 
 If you use Casanovo in your work, please cite the following publication:
 
