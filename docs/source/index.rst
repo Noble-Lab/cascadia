@@ -12,7 +12,7 @@ Contents
 
 .. toctree::
     Getting Started <getting_started.md>
-    File Formats <file_formats.rst>
+    File Formats <file_formats.md>
     Usage <usage.rst>
     FAQs <faqs.md>
 
