@@ -23,7 +23,8 @@ pip install cascadia
 ### Run de novo sequencing on new data with a trained model 
 
 ```{note}
-We recommend using linux and a dedicated GPU to achieve optimal runtime performance.```
+We recommend using linux and a dedicated GPU to achieve optimal runtime performance.
+```
 
 Most users will want to use a pretrained Cascadia model to perform de novo sequencing on a new dataset. Cascadia takes input MS data in the [mzML](file_formats.md) format. A small demo dataset, along with the pretrained model checkpoints from the paper, are available [here](https://drive.google.com/drive/folders/1UTrZIrCdUqYqscbqga_KdX8kc8ZjMMfr?usp=sharing). The following example on the provided demo dataset should take approximately 5 minutes to run on a GPU:
 
