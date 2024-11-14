@@ -42,7 +42,7 @@ Cascadia will produce an output file, [`demo_results.ssl`](file_formats.md), con
 
 A full description of additional optional paramaters to Cascadia sequencing is available [here](usage.md). 
 
-### Fine tune a model on new data
+<!-- ### Fine tune a model on new data
 
     FIXME 
 
@@ -50,3 +50,4 @@ A full description of additional optional paramaters to Cascadia sequencing is a
 
     FIXME 
 
+FIXME describe adding a new PTM -->
