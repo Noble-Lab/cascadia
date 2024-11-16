@@ -29,9 +29,8 @@ We recommend using linux and a dedicated GPU to achieve optimal runtime performa
 Most users will want to use a pretrained Cascadia model to perform de novo sequencing on a new dataset. Cascadia takes input MS data in the [mzML](file_formats.md) format. A small demo dataset, along with the pretrained model checkpoints from the paper, are available [here](https://drive.google.com/drive/folders/1UTrZIrCdUqYqscbqga_KdX8kc8ZjMMfr?usp=sharing). The following example on the provided demo dataset should take approximately 5 minutes to run on a GPU:
 
 ```sh
-    cascadia \
-      --mode sequence \
-      --t demo.mzML  \
+    cascadia sequence \
+      demo.mzML  \
       --checkpoint cascadia.ckpt \
       --out demo_results
 ```
@@ -42,12 +41,21 @@ Cascadia will produce an output file, [`demo_results.ssl`](file_formats.md), con
 
 A full description of additional optional paramaters to Cascadia sequencing is available [here](usage.md). 
 
-<!-- ### Fine tune a model on new data
-
-    FIXME 
-
 ### Train a new model from scratch
 
-    FIXME 
+To train Cascadia on new data, you need a labeled training and validation set in [.asf format](file_formats.md) as positional arguments:
+```sh
+    cascadia train training_data.asf validation_data.asf
+```
+A full list of additional optional arguments for training are descried [here](usage.md). 
 
-FIXME describe adding a new PTM -->
+### Fine tune a model on new data
+
+To fine tune a pre-trained model checkpoint on new data, you can simply pass it as an additional keyword argument to `train`:  
+
+```sh
+    cascadia train training_data.asf validation_data.asf \
+        --model pretrained_checkpoint.ckpt
+```
+
+<!-- FIXME describe adding a new PTM -->

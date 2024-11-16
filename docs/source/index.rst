@@ -14,7 +14,6 @@ Contents
     Getting Started <getting_started.md>
     File Formats <file_formats.md>
     Usage <usage.md>
-    FAQs <faqs.md>
 
 If you use Casanovo in your work, please cite the following publication:
 

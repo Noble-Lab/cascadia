@@ -29,7 +29,8 @@ To train Cascadia, the user needs to supply a collection of labeled augmented sp
 Following the anotations is a list of tab-delimited 4-tuples, with one row for each peak in the augmented spectrum. The augmented spectrum should contain peaks from the 2w+1 MS2 scans surrounding the central scan where the peptide is identified (where w is the augmentation width), along with the peaks from the corresponding MS1 scans that fall within the isolation window. Each row contains the m/z and intensity for a single peak, the same as in an MGF file, along with the relative position of the scan this peak is from compared to the central scan in the augmented spectrum (an integer in the range [-w, w]), and either a 1 or a 2 representing whether it is an MS1 or MS2 peak.
 
 An example augmented spectrum with w=1 is shown below:
-'''
+
+```
 BEGIN IONS
 TITLE=1
 PEPMASS=402.5
@@ -72,4 +73,4 @@ SEQ=PEPTIDEK
 402.2713624687576       0.2951177103313615      -1    1
 403.17193603515625      0.362321942870444       -1    1
 END IONS
-'''
+```
