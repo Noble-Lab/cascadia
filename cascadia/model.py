@@ -95,9 +95,10 @@ class AugmentedSpec2Pep(pl.LightningModule):
             dim_feedforward,
             tokenizer,
             max_charge,
-            lr,
+            lr = 1e-4,
             frag_weight = 20,
-            lr_decay=1e-9
+            lr_decay=1e-9, 
+            alpha = 1e-3
         ):
 
         super().__init__()
@@ -133,9 +134,8 @@ class AugmentedSpec2Pep(pl.LightningModule):
         self.fragCELoss = torch.nn.CrossEntropyLoss(weight=torch.tensor([1.,frag_weight]))
         self.MSELoss = torch.nn.MSELoss()
         self.lr = lr
-
         self.lr_decay=lr_decay
-
+        self.alpha = alpha
         self.tokenizer = tokenizer
 
     def _forward_step(
@@ -166,7 +166,7 @@ class AugmentedSpec2Pep(pl.LightningModule):
         mse_loss = self.MSELoss(pred_prec, true_prec)
 
         pred_frags = pred_frags[:,1:,:].reshape(-1, 2)
-        frag_loss = self.fragCELoss(pred_frags, frag_labels)
+        frag_loss = self.alpha * self.fragCELoss(pred_frags, frag_labels)
 
         correct_aas = torch.logical_or(preds_seqs == true_seqs, true_seqs == 0)
         aa_acc = torch.mean(correct_aas.float())
@@ -200,7 +200,7 @@ class AugmentedSpec2Pep(pl.LightningModule):
 
         return loss + frag_loss
 
-    def validation_step(self, batch, b_idx, d_idx):
+    def validation_step(self, batch, _):
         torch.set_grad_enabled(True)
 
         spectra, precursors, sequences, frag_labels, _ = batch
@@ -210,11 +210,8 @@ class AugmentedSpec2Pep(pl.LightningModule):
         true_seqs = batch[2][:,:]
         loss = self.CELoss(preds,true_seqs.flatten())
 
-        true_prec = batch[1][:,0]/1000
-        mse_loss = self.MSELoss(pred_prec, true_prec)
-
         pred_frags = pred_frags[:,1:,:].reshape(-1, 2)
-        frag_loss = self.fragCELoss(pred_frags, frag_labels)
+        frag_loss = self.alpha*self.fragCELoss(pred_frags, frag_labels)
         frag_acc = torch.mean((torch.argmax(pred_frags, dim=1) == frag_labels).float())
         frag_baseline = 1 - torch.sum(frag_labels)/len(frag_labels)
 
@@ -256,7 +253,7 @@ class AugmentedSpec2Pep(pl.LightningModule):
             sync_dist=True
         )
 
-        return loss, pep_acc + frag_loss
+        return loss + frag_loss, pep_acc
 
     def predict_step(self, batch, *args):
         torch.set_grad_enabled(True)

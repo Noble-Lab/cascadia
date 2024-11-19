@@ -1,6 +1,6 @@
 [project]
 name = "cascadia"
-version = "0.0.1"
+version = "0.0.2"
 authors = [
   { name="Justin Sanders", email="jsander1@uw.edu" },
 ]
@@ -30,6 +30,7 @@ dependencies = [
     "rdkit>=2023.03.1",
     "pillow>=9.4.0",
     "spectrum-utils>=0.4.1",
+    "tensorboard",
 ]
 
 [project.scripts]

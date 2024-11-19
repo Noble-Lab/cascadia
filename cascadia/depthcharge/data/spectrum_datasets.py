@@ -259,8 +259,6 @@ class SpectrumDataset(Dataset):
         # Create the tables:
         metadata = self._assemble_metadata(parser)
 
-        print("Read parser")
-
         spectrum_types = [
             ("mz_array", np.float64),
             ("intensity_array", np.float32),
@@ -275,8 +273,6 @@ class SpectrumDataset(Dataset):
         spectra["rt_array"] = parser.rt_arrays
         spectra["level_array"] = parser.level_arrays
         spectra["fragment_array"] = parser.fragment_arrays
-
-        print("Writing h5py")
 
         # Write the tables:
         with h5py.File(self.path, "a") as index:
@@ -320,8 +316,6 @@ class SpectrumDataset(Dataset):
             for row_idx in range(parser.n_spectra):
                 lin_idx = row_idx + self._file_offsets[-2]
                 self._locs[lin_idx] = (grp_idx, row_idx)
-        
-        print("Written file")
 
     def get_spectrum(self, idx: int) -> MassSpectrum:
         """Access a mass spectrum.

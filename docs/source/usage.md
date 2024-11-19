@@ -13,7 +13,7 @@ Argument | Description
 |-b, --batch_size | The batch size for inference. For the fastest inference the largest batch size that fits in GPU memory is recommended.  (default: 32)|
 |-w, --width | The number of adjacent scans to use when construcing augmented spectra. (default: 2)|
 |-c, --max_charge | The maximum precursor charge to consider when making predictions. (default 4) |
-
+|-p, --modifications | A path to the json file containing a list of PTMs in [Proforma](https://github.com/HUPO-PSI/ProForma) format. If not provided, the PTMs present in the [Massive-KB](https://massive.ucsd.edu/ProteoSAFe/static/massive-kb-libraries.jsp) dataset will be used by default. The list of PTMs needs to match those used to train the model. (default mskb) |
 
 ## Train
 ```
@@ -30,3 +30,4 @@ Argument | Description
 |-c, --max_charge | The maximum precursor charge to be considered by the model. (default 4) |
 |-e, --max_epochs | The maximum number of epochs to train the model for. The model checkpoint with the lowest validation loss after max_epochs will be saved. (default 10) |
 |-lr, --learning_rate | The learning rate to use for model training. (default 1e-5) |
+|-p, --modifications | A path to the json file containing a list of PTMs in [Proforma](https://github.com/HUPO-PSI/ProForma) format. If not provided, the PTMs present in the [Massive-KB](https://massive.ucsd.edu/ProteoSAFe/static/massive-kb-libraries.jsp) dataset will be used by default. (default mskb) |
