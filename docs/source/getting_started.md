@@ -11,7 +11,7 @@ conda create --name cascadia_env python=3.10
 This will create an environment called `cascadia_env` with Python 3.10 installed. Activate it by running:
 
 ```sh
-conda activate cascadia
+conda activate cascadia_env
 ```
 
 Finally, you can install Cascadia and all of its dependencies with:
