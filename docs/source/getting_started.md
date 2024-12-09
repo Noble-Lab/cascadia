@@ -19,6 +19,7 @@ Finally, you can install Cascadia and all of its dependencies with:
 ```sh
 pip install cascadia
 ```
+The installation should take no longer than a couple of minutes.
 
 ### Run de novo sequencing on new data with a trained model 
 
