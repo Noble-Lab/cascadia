@@ -16,6 +16,7 @@ import warnings
 import json
 warnings.filterwarnings('ignore')
 
+
 def sequence():
   parser=argparse.ArgumentParser()
   parser.add_argument("spectrum_file")
@@ -78,10 +79,11 @@ def sequence():
     device = 'cpu'
     print(f'No GPU found - running inference on cpu')
 
-  trainer = pl.Trainer(max_epochs=50, log_every_n_steps=1, accelerator=device)
+  trainer = pl.Trainer(max_epochs=50, log_every_n_steps=1, accelerator=device, devices = 1)
   preds = trainer.predict(model, dataloaders=train_loader)
 
   print("Writing results to:", results_file + '.ssl')
+
   write_results(preds, results_file, spectrum_file, isolation_window_size, score_threshold, augmentation_width*cycle_time)
   
   os.remove(train_index_filename)
@@ -114,7 +116,11 @@ def train():
   lr = args.learning_rate
   mods = args.modifications
   
-  if not torch.cuda.is_available():
+  if torch.cuda.is_available():
+    device = 'gpu'
+    print('GPU found')
+  else:
+    device = 'cpu'
     print("No GPU Available - training on CPU will be extremely slow!")
 
   print("Training on spectra from:", train_spectrum_file)
@@ -184,7 +190,7 @@ def train():
       mode='max',
       save_top_k=2
   )
-  trainer = pl.Trainer(max_epochs=max_epochs, logger=tb_logger, log_every_n_steps=10000, val_check_interval = 10000, check_val_every_n_epoch=None, callbacks=[ckpt_callback], accelerator='gpu')
+  trainer = pl.Trainer(max_epochs=max_epochs, logger=tb_logger, log_every_n_steps=10000, val_check_interval = 10000, check_val_every_n_epoch=None, callbacks=[ckpt_callback], accelerator=device, devices=1)
   trainer.fit(model, train_loader, val_loader)
   
 def main():
