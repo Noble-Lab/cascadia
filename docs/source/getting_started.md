@@ -1,5 +1,7 @@
 # Getting Started
 
+Cascadia is currently only compatible with Linux, but we are actively working on support for Windows and macOS. 
+
 ### Installation 
 
 We recommend using [conda](https://docs.conda.io/en/latest/) to manage dependencies for Cascadia. Create a new conda enviornment with:

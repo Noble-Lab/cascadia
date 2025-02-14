@@ -7,12 +7,13 @@ cascadia sequence SPECTRUM_FILE -m MODEL [-o OUTFILE] [-t SCORE_THRESHOLD] [-b B
 
 Argument | Description
 ---|---
-|spectrum_file |  __(required)__ The mzML file to perform de novo sequencing on.|
+|spectrum_file |  __(required)__ The mzML file to perform de novo sequencing on, or a list of multiple mzML files |
 |-o, --outfile | The output file to save de novo sequencing results to. (default: cascadia_results.ssl)|
 |-t, --score_threshold] | The score threshold applied to predictions. (default: 0.8)|
 |-b, --batch_size | The batch size for inference. For the fastest inference the largest batch size that fits in GPU memory is recommended.  (default: 32)|
 |-w, --width | The number of adjacent scans to use when construcing augmented spectra. (default: 2)|
 |-c, --max_charge | The maximum precursor charge to consider when making predictions. (default 4) |
+|-f, --format | One of 'ssl' or 'csv'. The file format to write results to. Select 'ssl' to generate output which can be loaded into Skyline. (default csv) |
 |-p, --modifications | A path to the json file containing a list of PTMs in [Proforma](https://github.com/HUPO-PSI/ProForma) format. If not provided, the PTMs present in the [Massive-KB](https://massive.ucsd.edu/ProteoSAFe/static/massive-kb-libraries.jsp) dataset will be used by default. The list of PTMs needs to match those used to train the model. (default mskb) |
 
 ## Train
