@@ -8,7 +8,7 @@ import os
 import sys
 import argparse
 from lightning.pytorch import loggers as pl_loggers
-from .utils import *
+from .depthcharge.utils import *
 from .model import AugmentedSpec2Pep
 from .augment import *
 from datetime import datetime
