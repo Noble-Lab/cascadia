@@ -1,2 +1,0 @@
-[console_scripts]
-cascadia = cascadia.cascadia:main
