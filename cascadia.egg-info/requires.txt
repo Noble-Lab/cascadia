@@ -1,7 +1,7 @@
 lightning<2.1,>=2.0
 pytorch-lightning<2.0,>=1.9
 pyteomics>=4.6
-torch<2.1,>=2.0
+torch>=2.2.0
 numpy<2.0
 numba>=0.48.0
 lxml>=4.9.1

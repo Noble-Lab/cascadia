@@ -13,7 +13,7 @@ License-File: LICENSE
 Requires-Dist: lightning<2.1,>=2.0
 Requires-Dist: pytorch-lightning<2.0,>=1.9
 Requires-Dist: pyteomics>=4.6
-Requires-Dist: torch<2.1,>=2.0
+Requires-Dist: torch>=2.2.0
 Requires-Dist: numpy<2.0
 Requires-Dist: numba>=0.48.0
 Requires-Dist: lxml>=4.9.1

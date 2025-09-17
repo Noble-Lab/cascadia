@@ -16,7 +16,7 @@ dependencies = [
     "lightning>=2.0,<2.1",
     "pytorch-lightning>=1.9,<2.0",
     "pyteomics>=4.6",
-    "torch>=2.0,<2.1",
+    "torch>=2.2.0",
     "numpy<2.0",
     "numba>=0.48.0",
     "lxml>=4.9.1",

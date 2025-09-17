@@ -39,7 +39,7 @@ def sequence():
   max_charge = args.max_charge
   mods = args.modifications
   
-  temp_path = os.getcwd() + '/cascadia_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
+  temp_path = os.getcwd() + '/cascadia_' +  datetime.now().strftime("%m-%d-%H-%M-%S")
   os.mkdir(temp_path)
   train_index_filename = temp_path + "/index.hdf5"
 
