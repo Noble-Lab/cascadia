@@ -144,10 +144,10 @@ class SpectrumDataset(Dataset):
 
         # Build a map of 1D indices to 2D locations:
         grp_idx = 0
-        for lin_idx in range(offsets[-1]):
-            grp_idx += lin_idx >= offsets[grp_idx + 1]
-            row_idx = lin_idx - offsets[grp_idx]
-            self._locs[lin_idx] = (grp_idx, row_idx)
+        for lin_idx in range(self._file_offsets[-1]):
+            grp_idx += lin_idx >= self._file_offsets[grp_idx + 1]
+            row_idx = lin_idx - self._file_offsets[grp_idx]
+            self._locs[lin_idx] = (grp_idx-1, row_idx)
 
         self._offsets = None
         _ = self.offsets  # Reinitialize the offsets.
