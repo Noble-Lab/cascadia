@@ -8,7 +8,7 @@ import os
 import sys
 import argparse
 from lightning.pytorch import loggers as pl_loggers
-from .utils import *
+from .depthcharge.utils import *
 from .model import AugmentedSpec2Pep
 from .augment import *
 from datetime import datetime
@@ -39,7 +39,7 @@ def sequence():
   max_charge = args.max_charge
   mods = args.modifications
   
-  temp_path = os.getcwd() + '/cascadia_' +  datetime.now().strftime("%m-%d-%H:%M:%S")
+  temp_path = os.getcwd() + '/cascadia_' +  datetime.now().strftime("%m-%d-%H-%M-%S")
   os.mkdir(temp_path)
   train_index_filename = temp_path + "/index.hdf5"
 
